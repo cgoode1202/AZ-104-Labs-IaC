@@ -63,7 +63,19 @@ Start-AzVM -ResourceGroupName $rgName -Name 'az104-04-vm1'
 # At this point the lab instructs you to download the RDP file for vm0 and connect, it should work now that we've configured the NSG to allow RDP
 
 # Create a private DNS zone
-$zone = New-AzPrivateDnsZone -Name contoso.org -ResourceGroupName $rgName
+New-AzPrivateDnsZone -Name contoso.org -ResourceGroupName $rgName
 
 # Create a virtual network link for the DNS zone
-$link = New-AzPrivateDnsVirtualNetworkLink -ZoneName contoso.org -ResourceGroupName $rgName -Name "az104-04-vnet1-link" -VirtualNetworkId $vnet.id -EnableRegistration
+New-AzPrivateDnsVirtualNetworkLink -ZoneName contoso.org -ResourceGroupName $rgName -Name "az104-04-vnet1-link" -VirtualNetworkId $vnet.id -EnableRegistration
+
+# Create DNS zone
+New-AzDnsZone -Name verygoodetechdemo.org -ResourceGroupName $rgName
+
+# Set records for the DNS zone
+New-AzDnsRecordSet -Name az104-04-vm0 -RecordType A -ZoneName verygoodetechdemo.org -ResourceGroupName $rgName -Ttl 3600 -DnsRecords (New-AzDnsRecordConfig -IPv4Address $pip0.IpAddress)
+New-AzDnsRecordSet -Name az104-04-vm1 -RecordType A -ZoneName verygoodetechdemo.org -ResourceGroupName $rgName -Ttl 3600 -DnsRecords (New-AzDnsRecordConfig -IPv4Address $pip1.IpAddress)
+
+# After this the lab directs you to test external name resolution for the newly created DNS zone
+
+# Clean up lab resources after you're finished
+Get-AzResourceGroup -Name 'az104-04*' | Remove-AzResourceGroup -Force -AsJob
